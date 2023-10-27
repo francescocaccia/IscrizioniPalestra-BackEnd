@@ -20,8 +20,10 @@ public class AtletaPayload {
 	private LocalDate dataScadenzaAbbonamento;
 
 	// Campi della visita medica
-	private LocalDate dataVisita;
-	private LocalDate dataScadenzaVisita;
+	private LocalDate dataVisitaMedica;
+	private LocalDate dataScadenzaVisitaMedica;
 
-	// Getters, setters e eventuali altri metodi...
+	// Campi per l'elettroencefalogramma
+	private LocalDate dataInizioElettroencefalogramma;
+	private LocalDate dataFineElettroencefalogramma;
 }

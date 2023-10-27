@@ -21,6 +21,10 @@ public class AtletaResponse {
 	private LocalDate dataScadenzaAbbonamento;
 
 	// Campi della visita medica
-	private LocalDate dataVisita;
-	private LocalDate dataScadenzaVisita;
+	private LocalDate dataVisitaMedica;
+	private LocalDate dataScadenzaVisitaMedica;
+
+	// Campi per l'elettroencefalogramma
+	private LocalDate dataInizioElettroencefalogramma;
+	private LocalDate dataFineElettroencefalogramma;
 }

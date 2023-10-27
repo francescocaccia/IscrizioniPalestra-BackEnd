@@ -1,7 +1,9 @@
 package Francesco.Iscrizioni.Pugilistica.Fabrianese.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,8 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.entities.Abbonamento;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.entities.Atleta;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.entities.VisitaMedica;
+import Francesco.Iscrizioni.Pugilistica.Fabrianese.enums.TipoAbbonamento;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.payload.AtletaPayload;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.payload.AtletaResponse;
+import Francesco.Iscrizioni.Pugilistica.Fabrianese.repository.AbbonamentoRepository;
+import Francesco.Iscrizioni.Pugilistica.Fabrianese.repository.VisitaMedicaRepository;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.service.AbbonamentoService;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.service.AtletaService;
 import Francesco.Iscrizioni.Pugilistica.Fabrianese.service.VisitaMedicaService;
@@ -38,6 +43,12 @@ public class AtletaController {
 
 	@Autowired
 	private VisitaMedicaService visitaMedicaService;
+
+	@Autowired
+	private AbbonamentoRepository abbonamentoRepository;
+
+	@Autowired
+	private VisitaMedicaRepository visitaMedicaRepository;
 
 	@PostMapping
 	@Transactional
@@ -62,8 +73,18 @@ public class AtletaController {
 		VisitaMedica visita = new VisitaMedica();
 		// Popola i campi della visita medica con i dati dal DTO
 		visita.setAtleta(atleta);
-		visita.setDataVisita(dto.getDataVisita());
-		visita.setDataScadenza(dto.getDataScadenzaVisita());
+		visita.setDataVisitaMedica(dto.getDataVisitaMedica());
+		visita.setDataScadenzaVisitaMedica(dto.getDataScadenzaVisitaMedica());
+
+		// Controlla se i campi per l'elettroencefalogramma sono presenti nel DTO prima
+		// di settarli
+		if (dto.getDataInizioElettroencefalogramma() != null) {
+			visita.setDataInizioElettroencefalogramma(dto.getDataInizioElettroencefalogramma());
+		}
+		if (dto.getDataFineElettroencefalogramma() != null) {
+			visita.setDataFineElettroencefalogramma(dto.getDataFineElettroencefalogramma());
+		}
+
 		visitaMedicaService.createVisitaMedica(visita); // crea la visita medica
 
 		return atleta;
@@ -75,8 +96,9 @@ public class AtletaController {
 	}
 
 	@GetMapping
-	public List<Atleta> getAllAtleti() {
-		return atletaService.getAllAtleti();
+	public ResponseEntity<List<AtletaResponse>> getAllAtleti() {
+		List<AtletaResponse> atleti = atletaService.getAllAtleti();
+		return ResponseEntity.ok(atleti);
 	}
 
 	@GetMapping("/{id}")
@@ -90,11 +112,57 @@ public class AtletaController {
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<Atleta> updateAtleta(@PathVariable Long id, @RequestBody Atleta atleta) {
-		if (!id.equals(atleta.getId())) {
-			return ResponseEntity.badRequest().build();
+	@Transactional
+	public ResponseEntity<AtletaResponse> updateAtleta(@PathVariable Long id, @RequestBody AtletaPayload payload) {
+		// Log dei dati del payload ricevuto
+		System.out.println("Aggiornamento atleta con ID: " + id + ", Payload ricevuto: " + payload);
+
+		Optional<Atleta> optionalAtleta = atletaService.getAtletaById(id);
+		if (!optionalAtleta.isPresent()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		return ResponseEntity.ok(atletaService.updateAtleta(atleta));
+
+		Atleta existingAtleta = optionalAtleta.get();
+
+		// Update atleta's details
+		existingAtleta.setNome(payload.getNome());
+		existingAtleta.setEmail(payload.getEmail());
+		existingAtleta.setDataDiNascita(payload.getDataDiNascita());
+		existingAtleta.setTelefono(payload.getTelefono());
+
+		Atleta updatedAtleta = atletaService.updateAtleta(existingAtleta);
+
+		// Update abbonamento's details
+		Optional<Abbonamento> optionalAbbonamento = abbonamentoRepository.findByAtleta(updatedAtleta);
+		if (optionalAbbonamento.isPresent()) {
+			Abbonamento existingAbbonamento = optionalAbbonamento.get();
+			existingAbbonamento.setTipo(payload.getTipoAbbonamento());
+			existingAbbonamento.setDataInizio(payload.getDataInizioAbbonamento());
+			existingAbbonamento.setDataScadenza(payload.getDataScadenzaAbbonamento());
+			abbonamentoRepository.save(existingAbbonamento);
+		}
+
+		// Update visita medica's details
+		Optional<VisitaMedica> optionalVisita = visitaMedicaRepository.findByAtleta(updatedAtleta);
+		if (optionalVisita.isPresent()) {
+			VisitaMedica existingVisita = optionalVisita.get();
+			existingVisita.setDataVisitaMedica(payload.getDataVisitaMedica());
+			existingVisita.setDataScadenzaVisitaMedica(payload.getDataScadenzaVisitaMedica());
+
+			// Controlla se i campi per l'elettroencefalogramma sono presenti nel DTO prima
+			// di aggiornare
+			if (payload.getDataInizioElettroencefalogramma() != null) {
+				existingVisita.setDataInizioElettroencefalogramma(payload.getDataInizioElettroencefalogramma());
+			}
+			if (payload.getDataFineElettroencefalogramma() != null) {
+				existingVisita.setDataFineElettroencefalogramma(payload.getDataFineElettroencefalogramma());
+			}
+
+			visitaMedicaRepository.save(existingVisita);
+		}
+
+		AtletaResponse response = atletaService.convertToAtletaResponse(updatedAtleta);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
@@ -102,4 +170,10 @@ public class AtletaController {
 		atletaService.deleteAtleta(id);
 		return ResponseEntity.noContent().build();
 	}
+
+	@GetMapping("/tipoAbbonamento")
+	public ResponseEntity<List<String>> getTipiAbbonamento() {
+		return ResponseEntity.ok(Arrays.stream(TipoAbbonamento.values()).map(Enum::name).collect(Collectors.toList()));
+	}
+
 }

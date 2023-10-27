@@ -9,7 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -22,13 +22,20 @@ public class VisitaMedica {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "atleta_id", nullable = false)
 	private Atleta atleta;
 
 	@Column(nullable = false)
-	private LocalDate dataVisita;
+	private LocalDate dataVisitaMedica;
 
 	@Column(nullable = false)
-	private LocalDate dataScadenza;
+	private LocalDate dataScadenzaVisitaMedica;
+
+	@Column
+	private LocalDate dataInizioElettroencefalogramma;
+
+	@Column
+	private LocalDate dataFineElettroencefalogramma;
+
 }
