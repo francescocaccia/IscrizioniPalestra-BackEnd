@@ -51,6 +51,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    <groupId>com.twilio.sdk</groupId>
+    <artifactId>twilio</artifactId>
+    <version>8.22.0</version> <!-- Usa l'ultima versione disponibile -->
+</dependency>
+
 	</dependencies>
 
 	<build>
