@@ -37,8 +37,8 @@ public class ScheduledNotificationService {
 		}
 
 		// Logica per le visite mediche in scadenza
-		List<VisitaMedica> visiteMedicheInScadenza = visitaMedicaRepository.findAllByDataScadenzaBetween(inUnMese,
-				inUnMese.plusDays(1));
+		List<VisitaMedica> visiteMedicheInScadenza = visitaMedicaRepository
+				.findAllByDataScadenzaVisitaMedicaBetween(inUnMese, inUnMese.plusDays(1));
 		for (VisitaMedica visitaMedica : visiteMedicheInScadenza) {
 			Atleta atleta = visitaMedica.getAtleta();
 			String messageBody = "La visita medica di " + atleta.getNome() + " scadrà il "

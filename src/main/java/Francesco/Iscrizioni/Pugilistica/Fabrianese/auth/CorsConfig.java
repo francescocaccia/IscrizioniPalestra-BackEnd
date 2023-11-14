@@ -13,7 +13,8 @@ public class CorsConfig {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**").allowedOrigins("https://iscrizioni-palestra-front-end.vercel.app")
+				registry.addMapping("/**")
+						.allowedOrigins("http://localhost:5173", "http://iscrizioni-palestra-front-end.vercel.app")
 
 						.allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS").allowedHeaders("*")
 						.allowCredentials(true).maxAge(3600);

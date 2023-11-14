@@ -16,8 +16,8 @@ public interface VisitaMedicaRepository extends JpaRepository<VisitaMedica, Long
 
 	Optional<VisitaMedica> findByAtleta(Atleta atleta);
 
-	List<VisitaMedica> findAllByDataScadenzaBefore(LocalDate data);
+	List<VisitaMedica> findAllByDataScadenzaVisitaMedicaBefore(LocalDate dataScadenzaVisitaMedica);
 
-	List<VisitaMedica> findAllByDataScadenzaBetween(LocalDate startDate, LocalDate endDate);
-
+	List<VisitaMedica> findAllByDataScadenzaVisitaMedicaBetween(LocalDate dataVisitaMedica,
+			LocalDate dataScadenzaVisitaMedica);
 }
